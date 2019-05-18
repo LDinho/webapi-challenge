@@ -98,5 +98,46 @@ router.get('/:id', (req, res) => {
     })
 })
 
+// GET all actions for a project by project id
+router.get('/:id/actions', async (req, res) => {
+  const { id } = req.params;
+
+  /*
+    Had to return each `res.status` below
+     to prevent this error:
+
+   UnhandledPromiseRejectionWarning: Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+   */
+
+  try {
+
+    const project = await get(id);
+
+    if (!project) {
+      return res.status(404)
+        .json({message: "Project doesn't exist"})
+    }
+
+    const actions = await getProjectActions(id);
+
+    if (actions.length) {
+      return res.status(200).json(actions);
+
+    } else {
+      return res.status(404)
+        .json({
+          message: "Project has no actions."
+        })
+    }
+  }
+  catch (err) {
+    return res.status(500)
+      .json({
+        error: "Server Error-Unable to retrieve actions."
+      })
+  }
+
+});
+
 
 module.exports = router
