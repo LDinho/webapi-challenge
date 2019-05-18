@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
+const db_actions = require('../../data/helpers/actionModel');
+
 const {
   get,
   insert,
@@ -13,7 +15,6 @@ const {
 // POST- Create new project
 router.post('/', (req, res) => {
   const newProject = req.body;
-  console.log('req body', req.body);
 
   const { name, description} = newProject;
 
@@ -32,6 +33,39 @@ router.post('/', (req, res) => {
       res.status(500)
          .json({ error: "Server error" });
     })
+});
+
+// POST- Create new action for a project
+router.post('/:id/actions', async (req, res) => {
+  const { id } = req.params;
+
+  let action = {...req.body, project_id: id};
+
+  try {
+
+    const project = await get(id);
+
+    if (!project) {
+      return res.status(404)
+                .json({message: 'No project found'})
+    }
+
+    if (action.description !== '') {
+      action = await db_actions.insert(action);
+
+      return res.status(201).json(action);
+
+    } else {
+
+      return res.status(404)
+        .json({message: 'Description missing'})
+    }
+
+  }
+  catch (err) {
+    res.status(500)
+      .json({error: 'Server error-Unable to add action'})
+  }
 });
 
 // GET all projects
