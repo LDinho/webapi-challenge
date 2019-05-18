@@ -80,5 +80,23 @@ router.get('/', (req, res) => {
     })
 })
 
+// GET one project by id
+router.get('/:id', (req, res) => {
+  const { id } = req.params;
+
+  get(id)
+    .then(project => {
+      if (!project) {
+        res.status(400)
+          .json(`message: project id ${id} is invalid`)
+      } else {
+        res.status(200).json(project)
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ message: "Server Error", err })
+    })
+})
+
 
 module.exports = router
