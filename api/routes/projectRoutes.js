@@ -41,6 +41,8 @@ router.post('/:id/actions', async (req, res) => {
 
   let action = {...req.body, project_id: id};
 
+  console.log('CREATE ACTION IN POST b4 insert:::', action);
+
   try {
 
     const project = await get(id);
@@ -52,6 +54,7 @@ router.post('/:id/actions', async (req, res) => {
 
     if (action.description !== '') {
       action = await db_actions.insert(action);
+      console.log("AFTER INSERT::", action)
 
       return res.status(201).json(action);
 
@@ -106,7 +109,8 @@ router.get('/:id/actions', async (req, res) => {
     Had to return each `res.status` below
      to prevent this error:
 
-   UnhandledPromiseRejectionWarning: Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+   UnhandledPromiseRejectionWarning: Error [ERR_HTTP_HEADERS_SENT]:
+   Cannot set headers after they are sent to the client
    */
 
   try {
@@ -139,5 +143,58 @@ router.get('/:id/actions', async (req, res) => {
 
 });
 
+// Update
+router.put('/:id', (req, res) => {
+  const { id } = req.params;
+  const updatedProject = req.body;
+
+  const { name, description } = updatedProject;
+
+  if (!name || !description) {
+    return res.status(400)
+      .json({ errorMessage: "name/description missing."   });
+  }
+
+  update(id, updatedProject )
+    .then((project) => {
+      console.log("Project in UPDATE:", project);
+
+      if (project) {
+        res.status(200).json(project);
+      } else {
+        res.status(404)
+          .json({
+            message: "Project with the specified ID does not exist."
+          });
+      }
+    })
+    .catch(() => {
+      res.status(500).json({
+        error: "Project info could not be modified."
+      });
+    })
+});
+
+// Delete
+router.delete('/:id', (req, res) => {
+  const { id } = req.params
+
+  get(id)
+    .then((project) => {
+      if (project) {
+        remove(id).then(()=> {
+          res.status(200).json(project);
+        }).catch(() => {
+          res.status(500).json({ error: "Bad Server-Unable to remove" });
+        })
+      } else {
+        res.status(404)
+          .json({ message: "Project with the specified ID does not exist." });
+      }
+    })
+    .catch(() => {
+      res.status(500).json({ error: "Bad Server" });
+    })
+})
 
 module.exports = router
