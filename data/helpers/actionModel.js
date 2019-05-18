@@ -17,9 +17,13 @@ module.exports = {
     });
   },
   insert: function(action) {
+    console.log("DATABASE ACTION::", action)
     return db('actions')
       .insert(action)
-      .then(([id]) => this.get(id));
+      .then(([id]) => {
+        console.log("DATABASE ID::", typeof id);
+        return this.get(id);
+      });
   },
   update: function(id, changes) {
     return db('actions')

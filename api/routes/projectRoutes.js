@@ -52,16 +52,17 @@ router.post('/:id/actions', async (req, res) => {
                 .json({message: 'No project found'})
     }
 
-    if (action.description !== '') {
-      action = await db_actions.insert(action);
+    if (action.description && action.notes) {
       console.log("AFTER INSERT::", action)
+
+      action = await db_actions.insert(action);
 
       return res.status(201).json(action);
 
     } else {
 
       return res.status(404)
-        .json({message: 'Description missing'})
+        .json({message: 'Description/Notes missing'})
     }
 
   }
