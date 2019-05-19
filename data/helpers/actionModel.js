@@ -9,7 +9,12 @@ module.exports = {
       return query
         .where('id', id)
         .first()
-        .then(action => mappers.actionToBody(action));
+        .then(action => {
+          if (!action) {
+            return null;
+          }
+          return mappers.actionToBody(action);
+        })
     }
 
     return query.then(actions => {
@@ -17,11 +22,17 @@ module.exports = {
     });
   },
   insert: function(action) {
+    console.log("THIS INSERT", this);
+
     return db('actions')
       .insert(action)
-      .then(([id]) => this.get(id));
+      .then(([id]) => {
+        return this.get(id);
+      });
   },
   update: function(id, changes) {
+    console.log("THIS UPDATE", this)
+
     return db('actions')
       .where('id', id)
       .update(changes)
