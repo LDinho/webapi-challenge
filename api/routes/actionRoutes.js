@@ -27,17 +27,14 @@ router.get('/:id', (req, res) => {
 
   get(id)
     .then(action => {
-      console.log('ACTION GET ID:', action)
-
-      res.status(200).json(action);
-      // if (!action) { // TODO add proper error message for invalid id
-      //   return res.status(400).json(`message: action id ${id} is invalid`)
-      // } else {
-      //   return res.status(200).json(action)
-      // }
+      if (!action) {
+        return res.status(404)
+                  .json(`message: action id ${id} is invalid`)
+      }
+      res.status(200).json(action)
     })
     .catch(() => {
-      return res.status(500).json({ message: "Server error" })
+       res.status(500).json({ message: "Server error" })
     })
 });
 
@@ -89,28 +86,53 @@ router.put('/:id', (req, res) => {
 });
 
 // Delete
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
 
-  const { id } = req.params
+  try {
 
+    const action = await get(id);
+
+    if (!action) {
+      // need to return the `res` to prevent this error:
+      // UnhandledPromiseRejectionWarning:
+      // Error [ERR_HTTP_HEADERS_SENT]:
+      // Cannot set headers after they are sent to the client
+      return res.status(404)
+                .json({
+                  message: 'Action with the specified ID does not exist.'
+                });
+    }
+
+    await remove(id);
+    res.status(200).json(action);
+
+  } catch (err) {
+    res.status(500).json({error: 'Server error'});
+  }
+
+  /*
+  // Promise version:
   get(id)
     .then((action) => {
       if (action) {
-        console.log("Action in DELETE", action);
 
-        remove(id).then(()=> {
+        remove(id)
+          .then(()=> {
           res.status(200).json(action);
         }).catch(() => {
           res.status(500).json({ error: "Bad Server-Unable to remove" });
         })
       } else {
         res.status(404)
-          .json({ message: "Project with the specified ID does not exist." });
+          .json({ message: "Action with the specified ID does not exist." });
       }
     })
     .catch(() => {
       res.status(500).json({ error: "Server error" });
     })
+
+   */
 
 });
 
