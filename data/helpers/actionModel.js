@@ -17,15 +17,17 @@ module.exports = {
     });
   },
   insert: function(action) {
-    console.log("DATABASE ACTION::", action)
+    console.log("THIS INSERT", this);
+
     return db('actions')
       .insert(action)
       .then(([id]) => {
-        console.log("DATABASE ID::", typeof id);
         return this.get(id);
       });
   },
   update: function(id, changes) {
+    console.log("THIS UPDATE", this)
+
     return db('actions')
       .where('id', id)
       .update(changes)

@@ -2,9 +2,10 @@ const express = require('express');
 
 const router = express.Router();
 
+const db_actions = require('../../data/helpers/actionModel');
+
 const {
   get,
-  update,
   remove,
 } = require('../../data/helpers/actionModel');
 
@@ -27,31 +28,46 @@ router.get('/:id', (req, res) => {
   get(id)
     .then(action => {
       console.log('ACTION GET ID:', action)
-      if (!action) {
-        return res.status(400).json(`message: action id ${id} is invalid`)
-      } else {
-        return res.status(200).json(action)
-      }
+
+      res.status(200).json(action);
+      // if (!action) { // TODO add proper error message for invalid id
+      //   return res.status(400).json(`message: action id ${id} is invalid`)
+      // } else {
+      //   return res.status(200).json(action)
+      // }
     })
     .catch(() => {
       return res.status(500).json({ message: "Server error" })
     })
 });
 
+
 // Update
+
+/*
+
+  Destructuring of the db actions update method
+  causes the `this` inside the update method (in actionModel.js)
+  to no longer refer to the actionModel module object.
+  That causes the `this.get()` inside the `update()`
+  in actionModel.js to be undefined.
+  As a result, an error was always caught
+  in the `catch()` causing a 'server error' response.
+
+*/
 router.put('/:id', (req, res) => {
 
   const { id } = req.params;
   const updatedAction = req.body;
 
-  const { description } = updatedAction;
+  const { description, notes } = updatedAction;
 
-  if (!description) {
+  if (!description || !notes) {
     return res.status(400)
-      .json({ errorMessage: "Description missing."});
+      .json({ errorMessage: "description/notes missing."});
   }
 
-  update(id, updatedAction)
+  db_actions.update(id, updatedAction)
     .then((action) => {
       console.log("Action UPDATE::", action);
 
